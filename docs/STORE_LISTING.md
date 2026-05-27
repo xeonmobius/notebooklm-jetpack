@@ -68,7 +68,7 @@ NotebookLM 的网址导入对很多网站水土不服，Jetpack 逐一击破：
 
 🎴 AI 对话分享卡片
 
-和 AI 的精彩对话想分享到社交媒体？在「AI 对话」tab 选择问答对后，点击「生成分享卡片」。温暖书籍风格排版，支持导出 JPEG/PNG/PDF 或直接复制到剪贴板。适配 iPhone 灵动岛安全区，3x Retina 高清渲染。
+和 AI 的精彩对话想分享到社交媒体？在「AI 对话」tab 选择问答对后，点击「生成分享卡片」。温暖书籍风格排版，支持导出 JPEG/PNG/PDF/Markdown 或直接复制到剪贴板（PDF 为可选文字的打印友好版）。适配 iPhone 灵动岛安全区，3x Retina 高清渲染。
 
 
 🎯 智能 Notebook 选择
@@ -192,7 +192,7 @@ YouTube 上有大量优质教程、讲座和访谈，你想把一个播放列表
 
 ### 🎴 AI 对话分享卡片
 
-和 AI 的精彩对话想发到社交媒体？选择问答对后点击「生成分享卡片」，温暖书籍风格排版，适配 iPhone 灵动岛安全区。支持导出 JPEG / PNG / PDF 或直接复制到剪贴板，3x Retina 高清渲染。
+和 AI 的精彩对话想发到社交媒体？选择问答对后点击「生成分享卡片」，温暖书籍风格排版，适配 iPhone 灵动岛安全区。支持导出 JPEG / PNG / PDF / Markdown 或直接复制到剪贴板（PDF 为可选文字的打印友好版），3x Retina 高清渲染。
 
 ### ⚡ 更多实用能力
 
@@ -287,7 +287,7 @@ Too many sources cluttering your notebook? Use NotebookLM's native checkboxes to
 
 🎴 AI conversation share cards
 
-Want to share a brilliant AI conversation on social media? Select Q&A pairs in the AI Chat tab, then click "Generate Share Card". Warm editorial styling with JPEG/PNG/PDF export or copy to clipboard. iPhone Dynamic Island safe area, 3x Retina rendering.
+Want to share a brilliant AI conversation on social media? Select Q&A pairs in the AI Chat tab, then click "Generate Share Card". Warm editorial styling with JPEG/PNG/PDF/Markdown export or copy to clipboard (PDF is now a selectable-text, print-friendly document). iPhone Dynamic Island safe area, 3x Retina rendering.
 
 
 ⚡ Also includes:
@@ -390,7 +390,7 @@ As you use NotebookLM more, notebooks accumulate dozens of sources. Removing out
 
 🎴 **AI Conversation Share Cards**
 
-Want to share a brilliant AI conversation on social media? Select Q&A pairs → "Generate Share Card". Warm editorial styling with iPhone Dynamic Island safe area. Export as JPEG/PNG/PDF or copy image to clipboard. 3x Retina rendering for crisp results.
+Want to share a brilliant AI conversation on social media? Select Q&A pairs → "Generate Share Card". Warm editorial styling with iPhone Dynamic Island safe area. Export as JPEG/PNG/PDF/Markdown or copy image to clipboard (PDF is now a selectable-text, print-friendly document). 3x Retina rendering for crisp results.
 
 ⚡ **Also includes:**
 - 🖨️ **PDF export upgrade** — warm serif styling (Noto Serif SC, cream background, accent colors), branded footer with YouTube link. System font fallback for offline CJK rendering.
