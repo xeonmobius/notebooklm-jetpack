@@ -26,6 +26,7 @@ function isZh(): boolean {
 const i18n = {
   question: () => isZh() ? '提问' : 'Question',
   answer: () => isZh() ? '回答' : 'Answer',
+  source: () => isZh() ? '来源' : 'Source',
   madeWith: () => isZh()
     ? 'Made with ❤️ by YouTuber「绿皮火车」'
     : 'Made with ❤️ by YouTuber「绿皮火车」',
@@ -45,7 +46,7 @@ const i18n = {
   },
 };
 
-type ExportFormat = 'jpeg' | 'png' | 'pdf' | 'clipboard';
+type ExportFormat = 'jpeg' | 'png' | 'pdf' | 'clipboard' | 'markdown';
 
 export function ShareCardApp() {
   const [data, setData] = useState<ShareCardData | null>(null);
@@ -99,10 +100,17 @@ export function ShareCardApp() {
   };
 
   const handleSave = async (format: ExportFormat = 'jpeg') => {
-    if (!cardRef.current) return;
+    if (!cardRef.current || !data) return;
     setSaving(true);
     setShowDropdown(false);
     try {
+      // Markdown export skips canvas rendering entirely — the pairs are
+      // already raw markdown from the Turndown pipeline upstream.
+      if (format === 'markdown') {
+        downloadText(buildMarkdown(data), `${filename}.md`);
+        return;
+      }
+
       const canvas = await getCanvas();
 
       if (format === 'jpeg') {
@@ -176,6 +184,7 @@ export function ShareCardApp() {
               <button onClick={() => handleSave('png')}>PNG</button>
               <button onClick={() => handleSave('pdf')}>PDF</button>
               <button onClick={() => handleSave('clipboard')}>Clipboard</button>
+              <button onClick={() => handleSave('markdown')}>Markdown (.md)</button>
             </div>
           )}
         </div>
@@ -259,6 +268,46 @@ function downloadDataUrl(dataUrl: string, filename: string) {
   link.download = filename;
   link.href = dataUrl;
   link.click();
+}
+
+/** Trigger a download of plain text content (used for the .md export). */
+function downloadText(text: string, filename: string) {
+  const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.download = filename;
+  link.href = url;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Serialize Q&A pairs into a markdown document. The pair.question / pair.answer
+ * fields are already raw markdown (Turndown output), so this only adds the
+ * scaffolding: H1 title, a source blockquote, bold role labels, and `---`
+ * dividers. Role labels are bold text (not headings) so that `##` headings
+ * inside an AI answer keep their own hierarchy intact.
+ */
+function buildMarkdown(data: ShareCardData): string {
+  const colon = isZh() ? '：' : ': ';
+  const blocks: string[] = [];
+
+  if (data.title?.trim()) blocks.push(`# ${data.title.trim()}`);
+
+  const sourceParts = [data.platform, data.url].filter(Boolean).join(' · ');
+  if (sourceParts) blocks.push(`> ${i18n.source()}${colon}${sourceParts}`);
+
+  data.pairs.forEach((pair, i) => {
+    if (pair.question?.trim()) {
+      blocks.push(`**${i18n.question()}${colon}**\n\n${pair.question.trim()}`);
+    }
+    if (pair.answer?.trim()) {
+      blocks.push(`**${i18n.answer()}${colon}**\n\n${pair.answer.trim()}`);
+    }
+    if (i < data.pairs.length - 1) blocks.push('---');
+  });
+
+  return blocks.join('\n\n') + '\n';
 }
 
 /**
