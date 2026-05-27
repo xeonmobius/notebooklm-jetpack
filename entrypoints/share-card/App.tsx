@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { toCanvas } from 'html-to-image';
-import { jsPDF } from 'jspdf';
 import { QRCodeSVG } from 'qrcode.react';
 import { marked } from 'marked';
 import type { QAPair } from '@/lib/types';
@@ -104,10 +103,16 @@ export function ShareCardApp() {
     setSaving(true);
     setShowDropdown(false);
     try {
-      // Markdown export skips canvas rendering entirely — the pairs are
-      // already raw markdown from the Turndown pipeline upstream.
+      // Markdown + PDF export skip canvas rendering — the pairs are already
+      // raw markdown from the Turndown pipeline upstream.
       if (format === 'markdown') {
         downloadText(buildMarkdown(data), `${filename}.md`);
+        return;
+      }
+      if (format === 'pdf') {
+        // Render markdown → styled HTML → print-friendly PDF via the docs
+        // CDP pipeline in the background (text-selectable, A4, paginated).
+        await exportConversationPdf(data);
         return;
       }
 
@@ -119,19 +124,6 @@ export function ShareCardApp() {
       } else if (format === 'png') {
         const dataUrl = canvas.toDataURL('image/png');
         downloadDataUrl(dataUrl, `${filename}.png`);
-      } else if (format === 'pdf') {
-        const imgWidth = canvas.width;
-        const imgHeight = canvas.height;
-        const pdfWidth = 100;
-        const pdfHeight = (imgHeight / imgWidth) * pdfWidth;
-        const pdf = new jsPDF({
-          orientation: pdfHeight > pdfWidth ? 'portrait' : 'landscape',
-          unit: 'mm',
-          format: [pdfWidth, pdfHeight],
-        });
-        const imgData = canvas.toDataURL('image/jpeg', 0.95);
-        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
-        pdf.save(`${filename}.pdf`);
       } else if (format === 'clipboard') {
         canvas.toBlob(async (blob) => {
           if (blob) {
@@ -282,6 +274,40 @@ function downloadText(text: string, filename: string) {
 }
 
 /**
+ * Render the conversation to a print-friendly PDF via the background's CDP
+ * pipeline (same path as the docs export — text-selectable, A4, paginated).
+ * Resolves when the background reports done/error or after a safety timeout.
+ */
+function exportConversationPdf(data: ShareCardData): Promise<void> {
+  return new Promise((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      try { port.disconnect(); } catch { /* already gone */ }
+      resolve();
+    };
+    const port = chrome.runtime.connect({ name: 'pdf-export' });
+    port.onMessage.addListener((msg: { phase?: string }) => {
+      if (msg.phase === 'done' || msg.phase === 'error') finish();
+    });
+    port.onDisconnect.addListener(finish);
+    const timer = setTimeout(finish, 90_000);
+    port.postMessage({
+      type: 'GENERATE_CONVERSATION_PDF',
+      data: {
+        title: data.title,
+        platform: data.platform,
+        url: data.url,
+        pairs: data.pairs.map((p) => ({ question: p.question, answer: p.answer })),
+        isZh: isZh(),
+      },
+    });
+  });
+}
+
+/**
  * Serialize Q&A pairs into a markdown document. The pair.question / pair.answer
  * fields are already raw markdown (Turndown output), so this only adds the
  * scaffolding: H1 title, a source blockquote, bold role labels, and `---`
@@ -289,13 +315,16 @@ function downloadText(text: string, filename: string) {
  * inside an AI answer keep their own hierarchy intact.
  */
 function buildMarkdown(data: ShareCardData): string {
-  const colon = isZh() ? '：' : ': ';
+  // Pure colon, no trailing space — a space before `**` breaks bold (`**Q: **`).
+  const colon = isZh() ? '：' : ':';
+  // Source line wants a readable gap after the half-width colon.
+  const sourceSep = isZh() ? '' : ' ';
   const blocks: string[] = [];
 
   if (data.title?.trim()) blocks.push(`# ${data.title.trim()}`);
 
   const sourceParts = [data.platform, data.url].filter(Boolean).join(' · ');
-  if (sourceParts) blocks.push(`> ${i18n.source()}${colon}${sourceParts}`);
+  if (sourceParts) blocks.push(`> ${i18n.source()}${colon}${sourceSep}${sourceParts}`);
 
   data.pairs.forEach((pair, i) => {
     if (pair.question?.trim()) {

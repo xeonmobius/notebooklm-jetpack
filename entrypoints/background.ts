@@ -8,7 +8,7 @@ import {
   getAllTabUrls,
 } from '@/services/notebooklm';
 import { analyzeDocSite, fetchSitemap, fetchHuaweiCatalog, fetchLlmsTxt, fetchLlmsFullTxt } from '@/services/docs-site';
-import { fetchAllPages, buildDocsHtml, cleanComponentMd, convertHtmlToMarkdown } from '@/services/pdf-generator';
+import { fetchAllPages, buildDocsHtml, buildConversationHtml, cleanComponentMd, convertHtmlToMarkdown } from '@/services/pdf-generator';
 import { getHistory, clearHistory } from '@/services/history';
 import { fetchPodcast, sanitizeFilename, buildFilename } from '@/services/podcast';
 import { fetchYouTube, fetchYouTubeMore } from '@/services/youtube';
@@ -290,6 +290,23 @@ export default defineBackground(() => {
     if (port.name !== 'pdf-export') return;
 
     port.onMessage.addListener(async (msg) => {
+      // AI-chat share page → print-friendly PDF (reuses the docs CDP pipeline)
+      if (msg.type === 'GENERATE_CONVERSATION_PDF') {
+        const send = (data: Record<string, unknown>) => {
+          try { port.postMessage(data); } catch { /* disconnected */ }
+        };
+        try {
+          send({ phase: 'rendering', current: 1, total: 1 });
+          const html = buildConversationHtml(msg.data);
+          await handleExportPdfFromHtml(html, msg.data.title || 'conversation');
+          send({ phase: 'done' });
+        } catch (err) {
+          console.error('[GENERATE_CONVERSATION_PDF] failed:', err);
+          send({ phase: 'error', error: String(err) });
+        }
+        return;
+      }
+
       if (msg.type !== 'GENERATE_PDF' && msg.type !== 'GENERATE_CLIPBOARD') return;
 
       const isClipboard = msg.type === 'GENERATE_CLIPBOARD';

@@ -263,6 +263,99 @@ export function buildDocsHtml(siteInfo: DocSiteInfo, pages: PageContent[]): stri
 </html>`;
 }
 
+// ── Conversation (AI chat share) → print-friendly HTML ──
+
+export interface ConversationPdfData {
+  title: string;
+  platform: string;
+  url: string;
+  pairs: { question: string; answer: string }[];
+  isZh: boolean;
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// Q/A role-block styling — mirrors the share-card visual language (question
+// gets a red left-border panel, answer flows; uppercase EB Garamond labels).
+const CONVERSATION_CSS = `
+.conv-header { text-align: center; margin: .5em 0 2.6em; }
+.conv-platform { font-family: "EB Garamond", serif; font-size: .8em; letter-spacing: .25em; text-transform: uppercase; color: #8a7e70; margin-bottom: .6em; }
+.conv-title { font-family: "Noto Serif SC", serif; font-size: 2em; color: #1a1612; border: none; margin: 0; letter-spacing: .02em; }
+.conv-rule { width: 40px; height: 1px; background: #c4553a; margin: 1.2em auto 0; }
+.conv-source { font-family: "EB Garamond", serif; font-size: .72em; color: #b0a596; margin-top: .9em; word-break: break-all; }
+.qa-pair { margin: 0 0 1.6em; }
+.qa-role { font-family: "EB Garamond", serif; font-size: .72em; font-weight: 500; letter-spacing: .25em; text-transform: uppercase; margin: 0 0 .45em; }
+.qa-role.q { color: #c4553a; }
+.qa-role.a { color: #8a7e70; }
+.qa-question { border-left: 2px solid #c4553a; background: #eee8de; padding: .65em 1.05em; border-radius: 0 8px 8px 0; page-break-inside: avoid; }
+.qa-question > :first-child { margin-top: 0; }
+.qa-question > :last-child { margin-bottom: 0; }
+.qa-answer { margin-top: 1.1em; }
+.qa-answer > :first-child { margin-top: 0; }
+.qa-answer > :last-child { margin-bottom: 0; }
+.qa-divider { border: none; border-top: 1px solid #d4c9ba; margin: 1.8em 0; }
+`;
+
+export function buildConversationHtml(data: ConversationPdfData): string {
+  marked.setOptions({ gfm: true, breaks: false });
+  const { title, platform, url, pairs, isZh } = data;
+  const L = isZh
+    ? { q: '提问', a: '回答', kind: 'AI 对话', made: 'Made with ❤️ by 绿皮火车' }
+    : { q: 'Question', a: 'Answer', kind: 'AI Conversation', made: 'Made with ❤️ by Green Train Podcast' };
+
+  const platformLabel = platform ? `${platform} · ${L.kind}` : L.kind;
+
+  const header = `
+  <div class="conv-header">
+    <div class="conv-platform">${escapeHtml(platformLabel)}</div>
+    <h1 class="conv-title">${escapeHtml(title || (isZh ? 'AI 对话' : 'AI Conversation'))}</h1>
+    <div class="conv-rule"></div>
+    ${url ? `<div class="conv-source">${escapeHtml(url)}</div>` : ''}
+  </div>`;
+
+  const pairsHtml = pairs.map((p, i) => {
+    const q = p.question?.trim()
+      ? `<div class="qa-role q">${L.q}</div><div class="qa-question">${marked.parse(p.question) as string}</div>`
+      : '';
+    const a = p.answer?.trim()
+      ? `<div class="qa-role a">${L.a}</div><div class="qa-answer">${marked.parse(p.answer) as string}</div>`
+      : '';
+    const divider = i < pairs.length - 1 ? '<hr class="qa-divider">' : '';
+    return `<div class="qa-pair">${q}${a}</div>${divider}`;
+  }).join('\n');
+
+  const footer = `
+  <div class="pdf-footer">
+    <div class="pdf-footer-left">
+      <span class="pdf-footer-brand">NotebookLM Jetpack</span>
+      <span class="pdf-footer-made">${L.made}</span>
+    </div>
+    <div class="pdf-footer-link">
+      <a href="https://youtu.be/9gPTuJZRHJk" target="_blank">youtu.be/9gPTuJZRHJk</a>
+    </div>
+  </div>`;
+
+  return `<!DOCTYPE html>
+<html lang="${isZh ? 'zh' : 'en'}">
+<head>
+  <meta charset="utf-8">
+  <title>${escapeHtml(title)}</title>
+  <style>${CSS}${CONVERSATION_CSS}</style>
+</head>
+<body>
+  ${header}
+  ${pairsHtml}
+  ${footer}
+</body>
+</html>`;
+}
+
 // ── Silent PDF export via chrome.debugger (CDP Page.printToPDF) ──
 
 // Create blob URL in popup context (has DOM) and send to background for CDP PDF export
