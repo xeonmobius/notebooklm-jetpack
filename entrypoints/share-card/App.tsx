@@ -75,7 +75,7 @@ export function ShareCardApp() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const filename = data?.title || 'share-card';
+  const filename = data ? buildFilename(data) : 'share-card';
   const pixelRatio = 3;
 
   // Cache the high-res canvas to avoid re-rendering fonts/DOM on each export
@@ -262,6 +262,30 @@ function downloadDataUrl(dataUrl: string, filename: string) {
   link.click();
 }
 
+/** Strip characters illegal in filenames; collapse whitespace; cap length. */
+function sanitizeFilename(name: string): string {
+  return name
+    .replace(/[<>:"/\\|?*]/g, '_')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 120);
+}
+
+/**
+ * Friendly default download name shared by md/jpg/png/pdf:
+ * `{title} - {YYYY-MM-DD}`, falling back to `{platform} 对话 {date}` when the
+ * conversation has no title. Date is local time so it matches the user's day.
+ */
+function buildFilename(data: ShareCardData): string {
+  const d = new Date();
+  const date = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const title = data.title?.trim();
+  const base = title
+    ? `${title} - ${date}`
+    : `${data.platform || 'AI'} ${isZh() ? '对话' : 'Conversation'} ${date}`;
+  return sanitizeFilename(base);
+}
+
 /** Trigger a download of plain text content (used for the .md export). */
 function downloadText(text: string, filename: string) {
   const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
@@ -302,6 +326,7 @@ function exportConversationPdf(data: ShareCardData): Promise<void> {
         url: data.url,
         pairs: data.pairs.map((p) => ({ question: p.question, answer: p.answer })),
         isZh: isZh(),
+        filename: buildFilename(data),
       },
     });
   });

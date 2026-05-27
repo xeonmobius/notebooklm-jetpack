@@ -91,7 +91,7 @@ export type MessageType =
   | { type: 'IMPORT_CLAUDE_CONVERSATION'; conversation: ClaudeConversation; selectedMessageIds: string[] }
   | { type: 'EXPORT_PDF'; blobUrl: string; title: string }
   | { type: 'GENERATE_PDF'; siteInfo: DocSiteInfo }
-  | { type: 'GENERATE_CONVERSATION_PDF'; data: { title: string; platform: string; url: string; pairs: { question: string; answer: string }[]; isZh: boolean } }
+  | { type: 'GENERATE_CONVERSATION_PDF'; data: { title: string; platform: string; url: string; pairs: { question: string; answer: string }[]; isZh: boolean; filename: string } }
   | { type: 'FETCH_PODCAST'; url: string; count?: number }
   | { type: 'FETCH_YOUTUBE'; url: string }
   | { type: 'FETCH_YOUTUBE_MORE'; continuation: string }

@@ -15,8 +15,12 @@ import { fetchYouTube, fetchYouTubeMore } from '@/services/youtube';
 import type { PodcastInfo, PodcastEpisode } from '@/services/podcast';
 
 // Helper: render HTML to PDF via CDP and download
-async function handleExportPdfFromHtml(html: string, title: string): Promise<void> {
-  const filename = `${(title || 'docs').replace(/[^a-zA-Z0-9\u4e00-\u9fff-_ ]/g, '').trim().slice(0, 60)}.pdf`;
+async function handleExportPdfFromHtml(html: string, title: string, explicitFilename?: string): Promise<void> {
+  // explicitFilename is already client-sanitized (md/jpg/png share it); only
+  // strip path separators as a final guard. Otherwise derive from title.
+  const filename = explicitFilename
+    ? `${explicitFilename.replace(/[/\\]/g, '_').slice(0, 120)}.pdf`
+    : `${(title || 'docs').replace(/[^a-zA-Z0-9\u4e00-\u9fff-_ ]/g, '').trim().slice(0, 60)}.pdf`;
   console.log('[EXPORT_PDF] Starting, HTML size:', (html.length / 1024).toFixed(1), 'KB');
 
   // Create blank tab, then inject HTML content via CDP
@@ -298,7 +302,7 @@ export default defineBackground(() => {
         try {
           send({ phase: 'rendering', current: 1, total: 1 });
           const html = buildConversationHtml(msg.data);
-          await handleExportPdfFromHtml(html, msg.data.title || 'conversation');
+          await handleExportPdfFromHtml(html, msg.data.title || 'conversation', msg.data.filename);
           send({ phase: 'done' });
         } catch (err) {
           console.error('[GENERATE_CONVERSATION_PDF] failed:', err);
