@@ -15,7 +15,7 @@ import { fetchYouTube, fetchYouTubeMore } from '@/services/youtube';
 import type { PodcastInfo, PodcastEpisode } from '@/services/podcast';
 
 // Helper: render HTML to PDF via CDP and download
-async function handleExportPdfFromHtml(html: string, title: string, explicitFilename?: string): Promise<void> {
+async function handleExportPdfFromHtml(html: string, title: string, explicitFilename?: string, returnData?: boolean): Promise<{ base64: string; filename: string } | void> {
   // explicitFilename is already client-sanitized (md/jpg/png share it); only
   // strip path separators as a final guard. Otherwise derive from title.
   const filename = explicitFilename
@@ -118,7 +118,12 @@ async function handleExportPdfFromHtml(html: string, title: string, explicitFile
   chrome.tabs.remove(tabId);
 
   const pdfSizeMB = (result.data.length * 3 / 4 / 1024 / 1024).toFixed(2);
-  console.log('[EXPORT_PDF] PDF generated, ~size:', pdfSizeMB, 'MB, downloading as:', filename);
+  console.log('[EXPORT_PDF] PDF generated, ~size:', pdfSizeMB, 'MB, filename:', filename);
+
+  // Hand the bytes back to the caller (page context) so it can anchor-download
+  // with a reliable UTF-8 filename. chrome.downloads + data: URL ignores the
+  // filename (shows "download"), so only the docs path below uses it.
+  if (returnData) return { base64: result.data, filename };
 
   // Use data URL for download (Service Worker has no URL.createObjectURL)
   const pdfDataUrl = 'data:application/pdf;base64,' + result.data;
@@ -302,7 +307,8 @@ export default defineBackground(() => {
         try {
           send({ phase: 'rendering', current: 1, total: 1 });
           const html = buildConversationHtml(msg.data);
-          await handleExportPdfFromHtml(html, msg.data.title || 'conversation', msg.data.filename);
+          const out = await handleExportPdfFromHtml(html, msg.data.title || 'conversation', msg.data.filename, true);
+          if (out) send({ phase: 'pdf-ready', base64: out.base64, filename: out.filename });
           send({ phase: 'done' });
         } catch (err) {
           console.error('[GENERATE_CONVERSATION_PDF] failed:', err);

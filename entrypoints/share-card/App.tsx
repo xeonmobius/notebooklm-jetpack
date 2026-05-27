@@ -297,9 +297,24 @@ function downloadText(text: string, filename: string) {
   URL.revokeObjectURL(url);
 }
 
+/** Anchor-download a base64 payload (used for the PDF bytes from background). */
+function downloadBase64(b64: string, filename: string, type: string) {
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  const url = URL.createObjectURL(new Blob([bytes], { type }));
+  const link = document.createElement('a');
+  link.download = filename;
+  link.href = url;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 /**
  * Render the conversation to a print-friendly PDF via the background's CDP
  * pipeline (same path as the docs export — text-selectable, A4, paginated).
+ * The background prints to PDF (needs chrome.debugger) and ships the bytes
+ * back; we anchor-download here so the UTF-8 filename is honored.
  * Resolves when the background reports done/error or after a safety timeout.
  */
 function exportConversationPdf(data: ShareCardData): Promise<void> {
@@ -313,7 +328,10 @@ function exportConversationPdf(data: ShareCardData): Promise<void> {
       resolve();
     };
     const port = chrome.runtime.connect({ name: 'pdf-export' });
-    port.onMessage.addListener((msg: { phase?: string }) => {
+    port.onMessage.addListener((msg: { phase?: string; base64?: string; filename?: string }) => {
+      if (msg.phase === 'pdf-ready' && msg.base64 && msg.filename) {
+        downloadBase64(msg.base64, msg.filename, 'application/pdf');
+      }
       if (msg.phase === 'done' || msg.phase === 'error') finish();
     });
     port.onDisconnect.addListener(finish);
