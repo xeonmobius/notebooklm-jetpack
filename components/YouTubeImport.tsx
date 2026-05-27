@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Youtube, Loader2, CheckCircle, AlertCircle, PlayCircle, ListVideo, User, ChevronDown } from 'lucide-react';
 import type { ImportProgress, YouTubeResult, YouTubeVideoItem, YouTubeSourceInfo } from '@/lib/types';
+import { StickyActionBar } from '@/components/StickyActionBar';
 import { t } from '@/lib/i18n';
 import { isYouTubeUrl, parseYouTubeUrl } from '@/services/youtube';
 
@@ -262,21 +263,23 @@ export function YouTubeImport({ initialUrl, onProgress }: Props) {
 
       {/* Import Button */}
       {videos.length > 0 && (
-        <button
-          onClick={handleImport}
-          disabled={selected.size === 0 || state === 'importing'}
-          className="w-full py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-btn hover:shadow-btn-hover transition-all duration-150 btn-press"
-        >
-          {state === 'importing' ? (
-            <><Loader2 className="w-4 h-4 animate-spin" />{t('importing')}</>
-          ) : state === 'done' ? (
-            <><CheckCircle className="w-4 h-4" />{t('youtube.importDone')}</>
-          ) : videos.length === 1 ? (
-            <><PlayCircle className="w-4 h-4" />{t('youtube.importThisVideo')}</>
-          ) : (
-            <><Youtube className="w-4 h-4" />{t('youtube.importToNlm', { count: selected.size })}</>
-          )}
-        </button>
+        <StickyActionBar>
+          <button
+            onClick={handleImport}
+            disabled={selected.size === 0 || state === 'importing'}
+            className="w-full py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-btn hover:shadow-btn-hover transition-all duration-150 btn-press"
+          >
+            {state === 'importing' ? (
+              <><Loader2 className="w-4 h-4 animate-spin" />{t('importing')}</>
+            ) : state === 'done' ? (
+              <><CheckCircle className="w-4 h-4" />{t('youtube.importDone')}</>
+            ) : videos.length === 1 ? (
+              <><PlayCircle className="w-4 h-4" />{t('youtube.importThisVideo')}</>
+            ) : (
+              <><Youtube className="w-4 h-4" />{t('youtube.importToNlm', { count: selected.size })}</>
+            )}
+          </button>
+        </StickyActionBar>
       )}
 
       {/* Results */}

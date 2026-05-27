@@ -17,6 +17,7 @@ import {
   Upload,
 } from 'lucide-react';
 import type { ImportProgress } from '@/lib/types';
+import { StickyActionBar } from '@/components/StickyActionBar';
 import type { BookmarkItem } from '@/services/bookmarks';
 import type { PdfProgress } from '@/services/pdf-generator';
 import { t } from '@/lib/i18n';
@@ -399,7 +400,7 @@ export function BookmarkPanel({ onProgress }: Props) {
 
           {/* Action buttons */}
           {selectedIds.size > 0 && (
-            <div className="space-y-2">
+            <StickyActionBar className="space-y-2">
               {pdfState === 'fetching' || pdfState === 'generating' ? (
                 <button
                   disabled
@@ -447,7 +448,7 @@ export function BookmarkPanel({ onProgress }: Props) {
                   <><BookOpen className="w-4 h-4" />{t('bookmark.importToNlm', { count: selectedIds.size })}</>
                 )}
               </button>
-            </div>
+            </StickyActionBar>
           )}
         </>
       ) : (

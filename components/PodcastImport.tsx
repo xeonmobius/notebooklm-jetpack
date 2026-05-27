@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Headphones, Loader2, CheckCircle, AlertCircle, Download, Music, Radio } from 'lucide-react';
 import type { PodcastInfo, PodcastEpisode } from '@/services/podcast';
+import { StickyActionBar } from '@/components/StickyActionBar';
 import { t } from '@/lib/i18n';
 
 type State = 'idle' | 'loading' | 'loaded' | 'downloading' | 'done' | 'error';
@@ -213,29 +214,31 @@ export function PodcastImport({ initialUrl }: Props) {
 
       {/* Download Button */}
       {episodes.length > 0 && (
-        <button
-          onClick={handleDownload}
-          disabled={selected.size === 0 || state === 'downloading'}
-          className={`w-full py-2.5 ${theme.accent} text-white text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-btn hover:shadow-btn-hover transition-all duration-150 btn-press`}
-        >
-          {state === 'downloading' ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              {t('podcast.downloading', { current: progress.current, total: progress.total })}
-              {progress.title && <span className="text-white/60 text-xs truncate max-w-[150px]">· {progress.title}</span>}
-            </>
-          ) : state === 'done' ? (
-            <>
-              <CheckCircle className="w-4 h-4" />
-              {t('podcast.downloadDone')}
-            </>
-          ) : (
-            <>
-              <Download className="w-4 h-4" />
-              {t('podcast.downloadSelected', { count: selected.size })}
-            </>
-          )}
-        </button>
+        <StickyActionBar>
+          <button
+            onClick={handleDownload}
+            disabled={selected.size === 0 || state === 'downloading'}
+            className={`w-full py-2.5 ${theme.accent} text-white text-sm rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-btn hover:shadow-btn-hover transition-all duration-150 btn-press`}
+          >
+            {state === 'downloading' ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                {t('podcast.downloading', { current: progress.current, total: progress.total })}
+                {progress.title && <span className="text-white/60 text-xs truncate max-w-[150px]">· {progress.title}</span>}
+              </>
+            ) : state === 'done' ? (
+              <>
+                <CheckCircle className="w-4 h-4" />
+                {t('podcast.downloadDone')}
+              </>
+            ) : (
+              <>
+                <Download className="w-4 h-4" />
+                {t('podcast.downloadSelected', { count: selected.size })}
+              </>
+            )}
+          </button>
+        </StickyActionBar>
       )}
 
       {/* Error */}

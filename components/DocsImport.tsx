@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BookOpen, Loader2, CheckCircle, AlertCircle, Search, ChevronRight, FileDown, Copy, Rocket, Link, Check } from 'lucide-react';
 import type { ImportProgress, DocSiteInfo, DocPageItem, DocFramework } from '@/lib/types';
+import { StickyActionBar } from '@/components/StickyActionBar';
 import type { PdfProgress } from '@/services/pdf-generator';
 import { t } from '@/lib/i18n';
 
@@ -429,7 +430,7 @@ export function DocsImport({ onProgress }: Props) {
 
       {/* Action buttons */}
       {siteInfo && siteInfo.pages.length > 0 && (
-        <div className="space-y-2">
+        <StickyActionBar className="space-y-2">
           {/* URL Import */}
           <button
             onClick={handleImport}
@@ -490,7 +491,7 @@ export function DocsImport({ onProgress }: Props) {
               </button>
             </div>
           )}
-        </div>
+        </StickyActionBar>
       )}
 
       {/* Results */}
