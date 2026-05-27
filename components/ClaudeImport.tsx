@@ -331,8 +331,24 @@ export function ClaudeImport({ onProgress }: Props) {
         ))}
       </div>
 
-      {/* Action buttons */}
-      <div className="flex gap-2">
+      {/* Status — kept above the sticky action bar so it stays visible */}
+      {state === 'success' && (
+        <div className="flex items-center gap-2 text-green-600 text-sm bg-green-50 border border-green-100/60 rounded-lg p-3 shadow-soft">
+          <CheckCircle className="w-4 h-4" />
+          {t('importSuccess')}
+        </div>
+      )}
+      {state === 'error' && (
+        <div className="flex items-center gap-2 text-red-500 text-sm bg-red-50 border border-red-100/60 rounded-lg p-3 shadow-soft">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          {error}
+        </div>
+      )}
+
+      {/* Action buttons — sticky footer so the primary CTA stays on-screen
+          even when the Q&A list pushes total height past the popup max. The
+          -mx-4/px-4 makes the bar span full width over the Tabs.Content padding. */}
+      <div className="sticky bottom-0 -mx-4 px-4 pt-3 pb-3 flex gap-2 bg-surface border-t border-border/60">
         <button
           onClick={handleImport}
           disabled={state === 'importing' || selectedPairIds.size === 0}
@@ -353,20 +369,6 @@ export function ClaudeImport({ onProgress }: Props) {
           <Share2 className="w-4 h-4" />
         </button>
       </div>
-
-      {/* Status */}
-      {state === 'success' && (
-        <div className="flex items-center gap-2 text-green-600 text-sm bg-green-50 border border-green-100/60 rounded-lg p-3 shadow-soft">
-          <CheckCircle className="w-4 h-4" />
-          {t('importSuccess')}
-        </div>
-      )}
-      {state === 'error' && (
-        <div className="flex items-center gap-2 text-red-500 text-sm bg-red-50 border border-red-100/60 rounded-lg p-3 shadow-soft">
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
-          {error}
-        </div>
-      )}
     </div>
   );
 }
