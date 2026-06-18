@@ -44,8 +44,10 @@ export default defineConfig({
       default_title: '__MSG_actionTitle__',
       default_popup: 'popup.html',
     },
+    // Only allow dev reload (and future integrations) from localhost and the
+    // Chrome docs page. Do NOT expose onMessageExternal to every https site.
     externally_connectable: {
-      matches: ['https://developer.chrome.com/*', 'http://localhost/*', 'https://*/*'],
+      matches: ['https://developer.chrome.com/*', 'http://localhost/*'],
     },
     icons: {
       '16': 'icons/icon-16.png',

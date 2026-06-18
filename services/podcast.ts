@@ -5,6 +5,8 @@
  *   - 小宇宙 (Xiaoyuzhou FM): __NEXT_DATA__ SSR extraction + RSS feed fallback
  */
 
+import { safeFetch } from '@/lib/safe-fetch';
+
 export interface PodcastInfo {
   name: string;
   artist: string;
@@ -162,7 +164,7 @@ async function fetchRssFeed(
   if (!feedUrl) return null;
 
   console.log('[podcast] Falling back to RSS:', feedUrl);
-  const resp = await fetch(feedUrl, {
+  const resp = await safeFetch(feedUrl, {
     headers: HEADERS,
     signal: AbortSignal.timeout(20000),
   });
@@ -341,7 +343,7 @@ function parseXiaoyuzhouEpisode(raw: Record<string, unknown>): PodcastEpisode {
  * Fetch a single episode from its xiaoyuzhou page.
  */
 async function fetchXiaoyuzhouEpisode(eid: string): Promise<PodcastResult> {
-  const resp = await fetch(`https://www.xiaoyuzhoufm.com/episode/${eid}`, {
+  const resp = await safeFetch(`https://www.xiaoyuzhoufm.com/episode/${eid}`, {
     headers: HEADERS,
     signal: AbortSignal.timeout(15000),
   });
@@ -375,7 +377,7 @@ async function fetchXiaoyuzhouPodcast(
   options?: { count?: number },
 ): Promise<PodcastResult> {
   // Step 1: Get podcast info + first batch of episodes from SSR
-  const resp = await fetch(`https://www.xiaoyuzhoufm.com/podcast/${pid}`, {
+  const resp = await safeFetch(`https://www.xiaoyuzhoufm.com/podcast/${pid}`, {
     headers: HEADERS,
     signal: AbortSignal.timeout(15000),
   });
@@ -434,7 +436,7 @@ async function fetchXiaoyuzhouRss(
   feedUrl: string,
   podcast: PodcastInfo,
 ): Promise<PodcastEpisode[]> {
-  const resp = await fetch(feedUrl, {
+  const resp = await safeFetch(feedUrl, {
     headers: HEADERS,
     signal: AbortSignal.timeout(20000),
   });

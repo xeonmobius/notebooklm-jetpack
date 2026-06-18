@@ -1,6 +1,7 @@
 import type { DocSiteInfo, DocPageItem } from '@/lib/types';
 import { delay } from '@/lib/utils';
 import { ensureOffscreen, sendOffscreenMessage } from '@/services/offscreen';
+import { safeFetch } from '@/lib/safe-fetch';
 
 // ─── llms.txt (AI-native page index) ──────────────────────────
 // Standard adopted by 66%+ of doc sites (Mintlify, React, Svelte, Next.js, Angular, etc.)
@@ -11,7 +12,7 @@ export async function fetchLlmsTxt(baseUrl: string): Promise<DocPageItem[]> {
   const origin = new URL(baseUrl).origin;
 
   try {
-    const response = await fetch(`${origin}/llms.txt`, { signal: AbortSignal.timeout(5000) });
+    const response = await safeFetch(`${origin}/llms.txt`, { signal: AbortSignal.timeout(5000) });
     if (!response.ok) return pages;
 
     const text = await response.text();
@@ -50,7 +51,7 @@ export async function fetchLlmsTxt(baseUrl: string): Promise<DocPageItem[]> {
 export async function fetchLlmsFullTxt(baseUrl: string): Promise<string | null> {
   const origin = new URL(baseUrl).origin;
   try {
-    const response = await fetch(`${origin}/llms-full.txt`, { signal: AbortSignal.timeout(15000) });
+    const response = await safeFetch(`${origin}/llms-full.txt`, { signal: AbortSignal.timeout(15000) });
     if (!response.ok) return null;
     const text = await response.text();
     // Validate: should be substantial content (>1KB) and not HTML
@@ -63,7 +64,7 @@ export async function fetchLlmsFullTxt(baseUrl: string): Promise<string | null> 
 export async function fetchMintlifyMarkdown(pageUrl: string): Promise<string | null> {
   try {
     const mdUrl = pageUrl.replace(/\/$/, '') + '.md';
-    const response = await fetch(mdUrl, { signal: AbortSignal.timeout(10000) });
+    const response = await safeFetch(mdUrl, { signal: AbortSignal.timeout(10000) });
     if (!response.ok) return null;
     const text = await response.text();
     // Validate: should look like markdown, not HTML
@@ -77,7 +78,7 @@ export async function fetchMintlifyMarkdown(pageUrl: string): Promise<string | n
 export async function probeMdSuffix(pageUrl: string): Promise<boolean> {
   try {
     const mdUrl = pageUrl.replace(/\/$/, '') + '.md';
-    const response = await fetch(mdUrl, { signal: AbortSignal.timeout(5000) });
+    const response = await safeFetch(mdUrl, { signal: AbortSignal.timeout(5000) });
     if (!response.ok) return false;
     const text = await response.text();
     // Must look like markdown, not HTML
@@ -107,7 +108,7 @@ export async function fetchSitemap(baseUrl: string): Promise<DocPageItem[]> {
 
   for (const sitemapUrl of sitemapUrls) {
     try {
-      const response = await fetch(sitemapUrl, { signal: AbortSignal.timeout(5000) });
+      const response = await safeFetch(sitemapUrl, { signal: AbortSignal.timeout(5000) });
       if (!response.ok) continue;
 
       const text = await response.text();
@@ -152,7 +153,7 @@ export async function fetchSitemap(baseUrl: string): Promise<DocPageItem[]> {
       if (parsed.sitemapUrls.length > 0) {
         for (const subUrl of parsed.sitemapUrls) {
           try {
-            const subResponse = await fetch(subUrl, { signal: AbortSignal.timeout(5000) });
+            const subResponse = await safeFetch(subUrl, { signal: AbortSignal.timeout(5000) });
             if (!subResponse.ok) continue;
             const subText = await subResponse.text();
             const subParsed = await sendOffscreenMessage<{
