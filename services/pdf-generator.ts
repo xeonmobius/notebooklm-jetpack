@@ -4,6 +4,13 @@
 
 import { marked } from 'marked';
 import type { DocPageItem, DocSiteInfo } from '@/lib/types';
+import { safeFetch } from '@/lib/safe-fetch';
+import { installMarkedSanitizer } from '@/lib/marked-sanitize';
+
+// Install once at module load: strip <script>/<iframe>/on*=/javascript: from
+// any raw HTML blocks that survive marked.parse() before they reach the PDF
+// render tab (where they would execute in a live browser context).
+installMarkedSanitizer(marked);
 
 export interface PdfGeneratorOptions {
   concurrency?: number;
@@ -77,7 +84,7 @@ async function fetchPageContent(page: DocPageItem): Promise<PageContent | null> 
   // Strategy 1: Try .md suffix (returns clean markdown — works on Mintlify, VitePress, Bun, Clerk, etc.)
   try {
     const mdUrl = page.url.replace(/\/$/, '') + '.md';
-    const r = await fetch(mdUrl, { signal: AbortSignal.timeout(8000) });
+    const r = await safeFetch(mdUrl, { signal: AbortSignal.timeout(8000) });
     console.log('[fetchPage] .md probe:', r.status, mdUrl);
     if (r.ok) {
       const text = await r.text();
@@ -96,7 +103,7 @@ async function fetchPageContent(page: DocPageItem): Promise<PageContent | null> 
   // Strategy 2: Fetch HTML and convert to Markdown via Turndown
   try {
     console.log('[fetchPage] Strategy 2: fetching HTML...');
-    const r = await fetch(page.url, { signal: AbortSignal.timeout(10000) });
+    const r = await safeFetch(page.url, { signal: AbortSignal.timeout(10000) });
     if (!r.ok) { console.log('[fetchPage] HTML fetch failed:', r.status); return null; }
     const html = await r.text();
     console.log('[fetchPage] HTML fetched, size:', html.length);
@@ -382,7 +389,7 @@ export async function generateDocsPdf(
     options.onProgress?.({ phase: 'fetching', current: 0, total: 1, currentPage: 'llms-full.txt' });
     try {
       const origin = new URL(siteInfo.baseUrl).origin;
-      const r = await fetch(`${origin}/llms-full.txt`, { signal: AbortSignal.timeout(30000) });
+      const r = await safeFetch(`${origin}/llms-full.txt`, { signal: AbortSignal.timeout(30000) });
       if (r.ok) {
         const fullText = await r.text();
         if (fullText.length > 1000) {

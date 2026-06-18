@@ -1,12 +1,13 @@
 import type { RssFeedItem } from '@/lib/types';
 import { ensureOffscreen, sendOffscreenMessage } from '@/services/offscreen';
+import { safeFetch } from '@/lib/safe-fetch';
 
 // Parse RSS/Atom feed and extract article links
 // XML parsing is delegated to the offscreen document because
 // DOMParser is not available in the MV3 service worker.
 export async function parseRssFeed(feedUrl: string): Promise<RssFeedItem[]> {
   try {
-    const response = await fetch(feedUrl);
+    const response = await safeFetch(feedUrl);
     if (!response.ok) {
       throw new Error(`Failed to fetch RSS feed: ${response.status}`);
     }

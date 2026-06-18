@@ -1,5 +1,6 @@
 import { parseRssFeed } from '@/services/rss-parser';
 import { fetchNotebooksCached as fetchNotebooksApi } from '@/services/notebook-api';
+import { safeFetch } from '@/lib/safe-fetch';
 import {
   importUrl,
   importBatch,
@@ -161,17 +162,19 @@ import {
 } from '@/services/bookmarks';
 import type { MessageType, MessageResponse, ClaudeConversation } from '@/lib/types';
 
-// Dev reload: allow external messages to trigger extension reload
-try {
-  chrome.runtime.onMessageExternal.addListener((msg, _sender, sendResponse) => {
-    if (msg?.type === 'DEV_RELOAD') {
-      console.log('[DEV] Reload triggered externally');
-      sendResponse({ ok: true });
-      setTimeout(() => chrome.runtime.reload(), 100);
-      return true;
-    }
-  });
-} catch { /* fake-browser in WXT build doesn't support onMessageExternal */ }
+// Dev reload: allow external messages to trigger extension reload (dev only)
+if (process.env.NODE_ENV === 'development') {
+  try {
+    chrome.runtime.onMessageExternal.addListener((msg, _sender, sendResponse) => {
+      if (msg?.type === 'DEV_RELOAD') {
+        console.log('[DEV] Reload triggered externally');
+        sendResponse({ ok: true });
+        setTimeout(() => chrome.runtime.reload(), 100);
+        return true;
+      }
+    });
+  } catch { /* fake-browser in WXT build doesn't support onMessageExternal */ }
+}
 
 // Context menu IDs
 const MENU_ID_PAGE = 'import-page';
@@ -353,7 +356,7 @@ export default defineBackground(() => {
         if (si.hasLlmsFullTxt) {
           sendProgress({ phase: 'fetching', current: 0, total: 1, currentPage: 'llms-full.txt' });
           const origin = new URL(si.baseUrl).origin;
-          const r = await fetch(`${origin}/llms-full.txt`, { signal: AbortSignal.timeout(30000) });
+          const r = await safeFetch(`${origin}/llms-full.txt`, { signal: AbortSignal.timeout(30000) });
           if (r.ok) {
             const fullText = await r.text();
             if (fullText.length > 1000) {
@@ -545,7 +548,7 @@ async function rescueSources(urls: string[], targetTabId?: number): Promise<Resc
   for (const url of fetchUrls) {
     try {
       console.log(`[rescue] Fetching: ${url}`);
-      const resp = await fetch(url, {
+      const resp = await safeFetch(url, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
         },
@@ -651,12 +654,12 @@ async function rescueSourcesWithProgress(
   }
 
   for (const url of fetchUrls) {
-    sendProgress?.({ phase: 'item-start', url });
-    try {
-      const resp = await fetch(url, {
-        headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' },
-        signal: AbortSignal.timeout(15000),
-      });
+      sendProgress?.({ phase: 'item-start', url });
+      try {
+        const resp = await safeFetch(url, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' },
+          signal: AbortSignal.timeout(15000),
+        });
       if (!resp.ok) {
         const r: RescueResult = { url, status: 'error', error: `HTTP ${resp.status}` };
         results.push(r);
