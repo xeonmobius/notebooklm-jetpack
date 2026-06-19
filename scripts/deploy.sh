@@ -20,9 +20,9 @@ pnpm build:firefox > /dev/null
 pnpm exec wxt zip > /dev/null
 pnpm exec wxt zip -b firefox > /dev/null
 
-CHROME_ZIP=$(ls -1 dist/*-chrome.zip 2>/dev/null | head -1)
+CHROME_ZIP=$(ls -1t dist/*-chrome.zip 2>/dev/null | head -1)
 FF_DIR="dist/firefox-mv2"
-FF_SOURCES_ZIP=$(ls -1 dist/*-sources.zip 2>/dev/null | head -1)
+FF_SOURCES_ZIP=$(ls -1t dist/*-sources.zip 2>/dev/null | head -1)
 
 echo "📦  Chrome zip:   ${CHROME_ZIP:-<none>}"
 echo "📦  Firefox dir:  $FF_DIR"
