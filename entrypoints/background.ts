@@ -13,6 +13,7 @@ import {
 import { analyzeDocSite, fetchSitemap, fetchHuaweiCatalog, fetchLlmsTxt, fetchLlmsFullTxt } from '@/services/docs-site';
 import { fetchAllPages, buildDocsHtml, buildConversationHtml, cleanComponentMd, convertHtmlToMarkdown } from '@/services/pdf-generator';
 import { getHistory, clearHistory } from '@/services/history';
+import { getAudioOverviews, saveAudioOverview, deleteAudioOverview } from '@/services/audio-overview-store';
 import { fetchPodcast, sanitizeFilename, buildFilename } from '@/services/podcast';
 import { fetchYouTube, fetchYouTubeMore } from '@/services/youtube';
 import type { PodcastInfo, PodcastEpisode } from '@/services/podcast';
@@ -1305,6 +1306,29 @@ async function handleMessage(message: MessageType, senderTabId?: number): Promis
       }
       return { current: fallbackCurrent, notebooks };
     }
+
+    // ── Audio Overview Center ──
+    case 'DETECT_AUDIO_OVERVIEW': {
+      try {
+        const resp = await chrome.tabs.sendMessage(message.tabId, { type: 'DETECT_AUDIO_OVERVIEW' });
+        return resp?.success ? resp.data : null;
+      } catch {
+        return null;
+      }
+    }
+
+    case 'SAVE_AUDIO_OVERVIEW':
+      return await saveAudioOverview(message.overview);
+
+    case 'GET_AUDIO_OVERVIEWS':
+      return await getAudioOverviews();
+
+    case 'DELETE_AUDIO_OVERVIEW':
+      return await deleteAudioOverview(message.notebookId);
+
+    case 'DOWNLOAD_AUDIO_OVERVIEW':
+      chrome.downloads.download({ url: message.audioUrl, filename: message.filename, saveAs: true });
+      return true;
 
     default:
       throw new Error('Unknown message type');

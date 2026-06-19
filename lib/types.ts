@@ -109,6 +109,12 @@ export type MessageType =
   | { type: 'GET_COLLECTIONS' }
   | { type: 'CREATE_COLLECTION'; name: string }
   | { type: 'IS_BOOKMARKED'; url: string }
+  // Audio Overview Center
+  | { type: 'DETECT_AUDIO_OVERVIEW'; tabId: number }
+  | { type: 'SAVE_AUDIO_OVERVIEW'; overview: AudioOverview }
+  | { type: 'GET_AUDIO_OVERVIEWS' }
+  | { type: 'DELETE_AUDIO_OVERVIEW'; notebookId: string }
+  | { type: 'DOWNLOAD_AUDIO_OVERVIEW'; audioUrl: string; filename: string }
   // Notebook info
   | { type: 'GET_NOTEBOOKS'; force?: boolean };
 
@@ -117,6 +123,15 @@ export interface NotebookInfo {
   id: string;
   title: string;
   url: string;
+}
+
+// Audio Overview collected from a NotebookLM notebook
+export interface AudioOverview {
+  notebookId: string;
+  notebookTitle: string;
+  audioUrl: string;
+  collectedAt: number;
+  listened?: boolean;
 }
 
 export type MessageResponse =

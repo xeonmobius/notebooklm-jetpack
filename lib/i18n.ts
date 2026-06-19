@@ -45,6 +45,13 @@ const zh = {
   'app.tabPodcast': '播客',
   'app.tabAI': 'AI 对话',
   'app.tabMore': '更多',
+  'app.tabAudio': '音频',
+  'audio.empty': '打开任意笔记本的音频概览，即可在此收集',
+  'audio.saveCurrent': '保存当前笔记本音频',
+  'audio.noCurrent': '当前笔记本未检测到音频概览',
+  'audio.download': '下载 MP3',
+  'audio.openNotebook': '打开笔记本',
+  'audio.collected': '已收集 {count} 个音频',
 
   // ── Notebook Selector ──
   'notebook.noNotebook': '请先打开 NotebookLM',
@@ -328,6 +335,13 @@ const en: Record<keyof typeof zh, string> = {
   'app.tabPodcast': 'Podcast',
   'app.tabAI': 'AI Chat',
   'app.tabMore': 'More',
+  'app.tabAudio': 'Audio',
+  'audio.empty': 'Open a notebook with an Audio Overview to collect it here',
+  'audio.saveCurrent': 'Save current notebook audio',
+  'audio.noCurrent': 'No Audio Overview detected on the current notebook',
+  'audio.download': 'Download MP3',
+  'audio.openNotebook': 'Open notebook',
+  'audio.collected': '{count} audio overview(s) collected',
 
   // ── Notebook Selector ──
   'notebook.noNotebook': 'Open NotebookLM first',

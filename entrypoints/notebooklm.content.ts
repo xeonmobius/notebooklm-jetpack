@@ -67,7 +67,28 @@ export default defineContentScript({
         sendResponse({ success: true, data: info });
         return true;
       }
+
+      if (message.type === 'DETECT_AUDIO_OVERVIEW') {
+        const info = getNotebookInfo();
+        const audioUrl = detectAudioOverviewUrl();
+        const current = info?.current;
+        const data = audioUrl && current ? { notebookId: current.id, notebookTitle: current.title, audioUrl } : null;
+        sendResponse({ success: true, data });
+        return true;
+      }
     });
+
+    // Best-effort Audio Overview URL scrape. Selector order is the iteration
+    // surface — if NotebookLM changes its audio rendering, swap/add selectors here.
+    function detectAudioOverviewUrl(): string | null {
+      const candidates = ['audio[src]', 'audio source[src]', '[data-audio-url]'];
+      for (const sel of candidates) {
+        const el = document.querySelector(sel);
+        const url = el?.getAttribute('src') || el?.getAttribute('data-audio-url');
+        if (url) return url;
+      }
+      return null;
+    }
 
     // Auto-inject banners if issues detected
     setTimeout(() => {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import * as Tabs from '@radix-ui/react-tabs';
-import { BookOpen, History, MessageCircle, Headphones, MoreHorizontal, Bookmark, Youtube } from 'lucide-react';
+import { BookOpen, History, MessageCircle, Headphones, MoreHorizontal, Bookmark, Youtube, Radio } from 'lucide-react';
 import type { ImportProgress } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
@@ -10,6 +10,7 @@ import { ClaudeImport } from '@/components/ClaudeImport';
 import { YouTubeImport } from '@/components/YouTubeImport';
 import { MorePanel } from '@/components/MorePanel';
 import { BookmarkPanel } from '@/components/BookmarkPanel';
+import { AudioCenter } from '@/components/AudioCenter';
 import { HistoryPanel } from '@/components/HistoryPanel';
 import { RescueBanner } from '@/components/RescueBanner';
 import { NotebookSelector } from '@/components/NotebookSelector';
@@ -120,6 +121,7 @@ export default function App() {
             { value: 'bookmark', icon: Bookmark, label: t('app.tabBookmarks') },
             { value: 'docs', icon: BookOpen, label: t('app.tabDocs') },
             { value: 'podcast', icon: Headphones, label: t('app.tabPodcast') },
+            { value: 'audio', icon: Radio, label: t('app.tabAudio') },
             { value: 'youtube', icon: Youtube, label: t('app.tabYouTube') },
             { value: 'claude', icon: MessageCircle, label: t('app.tabAI') },
             { value: 'more', icon: MoreHorizontal, label: t('app.tabMore') },
@@ -149,6 +151,10 @@ export default function App() {
 
         <Tabs.Content value="podcast" className="p-4 animate-fade-in">
           <PodcastImport initialUrl={initialPodcastUrl} />
+        </Tabs.Content>
+
+        <Tabs.Content value="audio" className="p-4 animate-fade-in">
+          <AudioCenter notebookLMTabId={notebookLMTabId} />
         </Tabs.Content>
 
         <Tabs.Content value="youtube" className="p-4 animate-fade-in">
