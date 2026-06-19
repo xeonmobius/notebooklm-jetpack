@@ -18,7 +18,7 @@ export default defineConfig({
     },
   },
 
-  manifest: {
+  manifest: ({ browser }) => ({
     name: '__MSG_extensionName__',
     description: '__MSG_extensionDescription__',
     default_locale: 'en',
@@ -31,8 +31,11 @@ export default defineConfig({
       'scripting',
       'contextMenus',
       'downloads',
-      'debugger',
-      'offscreen',
+      // ponytail: chrome.debugger (silent PDF via CDP) and chrome.offscreen
+      // (DOM in SW) are Chrome MV3 only. Firefox MV2 background is a persistent
+      // page with DOM natively and has no debugger equivalent — omit both there
+      // so AMO doesn't warn on unknown permissions.
+      ...(browser === 'chrome' ? (['debugger', 'offscreen'] as const) : []),
     ],
     host_permissions: [
       'https://notebooklm.google.com/*',
@@ -54,7 +57,7 @@ export default defineConfig({
       '48': 'icons/icon-48.png',
       '128': 'icons/icon-128.png',
     },
-  },
+  }),
 
   vite: ({ mode }) => ({
     define: {

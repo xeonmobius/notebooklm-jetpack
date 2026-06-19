@@ -15,6 +15,61 @@ import { fetchPodcast, sanitizeFilename, buildFilename } from '@/services/podcas
 import { fetchYouTube, fetchYouTubeMore } from '@/services/youtube';
 import type { PodcastInfo, PodcastEpisode } from '@/services/podcast';
 
+// ponytail: build-time constant. Chrome build dead-code-eliminates the
+// Firefox branches (print-dialog PDF path) so the SW bundle stays clean.
+const isFirefox = import.meta.env.BROWSER === 'firefox';
+
+/**
+ * Firefox PDF export: open the rendered HTML in a tab and trigger the print
+ * dialog. Firefox MV2 background has DOM (Blob/URL.createObjectURL) but no
+ * chrome.debugger (CDP) and no silent print-to-PDF. The user picks "Save as
+ * PDF" in the dialog; Firefox uses the page <title> as the default filename.
+ */
+async function exportPdfViaPrintDialog(html: string, filename: string): Promise<void> {
+  // Set <title> so Firefox suggests the right filename in its save dialog.
+  const titled = /<title>/i.test(html)
+    ? html.replace(/<title>[^<]*<\/title>/i, `<title>${filename}</title>`)
+    : html.replace(/<head[^>]*>/i, (m) => `${m}<title>${filename}</title>`);
+
+  const blob = new Blob([titled], { type: 'text/html' });
+  const blobUrl = URL.createObjectURL(blob);
+  const tab = await chrome.tabs.create({ url: blobUrl, active: true });
+  const tabId = tab.id;
+  if (!tabId) {
+    URL.revokeObjectURL(blobUrl);
+    throw new Error('Failed to open print tab');
+  }
+
+  // Wait for the blob page to reach 'complete' before firing print.
+  await new Promise<void>((resolve) => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      chrome.tabs.onUpdated.removeListener(onUpdated);
+      clearTimeout(timer);
+      resolve();
+    };
+    const onUpdated = (id: number, info: { status?: string }) => {
+      if (id === tabId && info.status === 'complete') finish();
+    };
+    chrome.tabs.onUpdated.addListener(onUpdated);
+    const timer = setTimeout(finish, 10_000); // ponytail: fixed safety cap
+  });
+
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId },
+      func: () => { window.print(); },
+    });
+  } catch (err) {
+    console.error('[EXPORT_PDF] print trigger failed:', err);
+  }
+
+  // Revoke the blob URL after the dialog has had time to render.
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 60_000);
+}
+
 // Helper: render HTML to PDF via CDP and download
 async function handleExportPdfFromHtml(html: string, title: string, explicitFilename?: string, returnData?: boolean): Promise<{ base64: string; filename: string } | void> {
   // explicitFilename is already client-sanitized (md/jpg/png share it); only
@@ -23,6 +78,13 @@ async function handleExportPdfFromHtml(html: string, title: string, explicitFile
     ? `${explicitFilename.replace(/[/\\]/g, '_').slice(0, 120)}.pdf`
     : `${(title || 'docs').replace(/[^a-zA-Z0-9\u4e00-\u9fff-_ ]/g, '').trim().slice(0, 60)}.pdf`;
   console.log('[EXPORT_PDF] Starting, HTML size:', (html.length / 1024).toFixed(1), 'KB');
+
+  // Firefox has no chrome.debugger (CDP); fall back to a print dialog the user
+  // confirms. No base64 is returned — consumers tolerate the print-opened phase.
+  if (isFirefox) {
+    await exportPdfViaPrintDialog(html, filename);
+    return;
+  }
 
   // Create blank tab, then inject HTML content via CDP
   const tab = await chrome.tabs.create({ url: 'about:blank', active: false });
