@@ -14,6 +14,8 @@
  *     leave a stray tab around forever. Only tabs we created are auto-closed.
  */
 
+import { executeScript } from '@/lib/scripting';
+
 const IDLE_TIMEOUT_MS = 5 * 60 * 1000;
 
 let cachedTabId: number | undefined;
@@ -129,8 +131,7 @@ async function tunnelFetch(
   scheduleIdleCleanup();
 
   const exec = async (): Promise<TunnelResponse> => {
-    const [{ result }] = await chrome.scripting.executeScript({
-      target: { tabId },
+    const [{ result }] = await executeScript<TunnelResponse>(tabId, {
       func: async (p: string, i: typeof init): Promise<TunnelResponse> => {
         try {
           const r = await fetch(p, {
