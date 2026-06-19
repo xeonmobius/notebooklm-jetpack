@@ -11,7 +11,7 @@
  * Uses InnerTube API (primary for playlists) and RSS feeds (primary for channels, fallback for playlists).
  */
 
-import type { YouTubeVideoItem, YouTubeSourceInfo, YouTubeResult } from '@/lib/types';
+import type { YouTubeVideoItem, YouTubeResult } from '@/lib/types';
 import { innertubeBrowse, fetchYouTubeText } from './youtube-tunnel';
 
 // ── URL Parsing ──

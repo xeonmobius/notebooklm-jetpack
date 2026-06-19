@@ -1001,14 +1001,6 @@ async function findMenuItemByIconOrText(
   return null;
 }
 
-// Keep backward-compatible alias
-async function findMenuItemByText(
-  texts: string[],
-  timeout: number = 3000
-): Promise<HTMLElement | null> {
-  return findMenuItemByIconOrText([], texts, timeout);
-}
-
 /**
  * Find an input by its associated label text (for Angular Material mat-label).
  */

@@ -1,7 +1,7 @@
 allowBuilds:
-  core-js: set this to true or false
-  esbuild: set this to true or false
-  spawn-sync: set this to true or false
+  core-js: true
+  esbuild: true
+  spawn-sync: true
 
 # Pin transitive deps that ship in the extension bundle.
 # dompurify: pulled by jspdf; <3.4.9 has XSS / Trusted-Types bypasses

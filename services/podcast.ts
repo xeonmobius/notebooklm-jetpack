@@ -434,7 +434,7 @@ async function fetchXiaoyuzhouPodcast(
  */
 async function fetchXiaoyuzhouRss(
   feedUrl: string,
-  podcast: PodcastInfo,
+  _podcast: PodcastInfo,
 ): Promise<PodcastEpisode[]> {
   const resp = await safeFetch(feedUrl, {
     headers: HEADERS,

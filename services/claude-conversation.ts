@@ -1,4 +1,4 @@
-import type { ClaudeConversation, ClaudeMessage } from '@/lib/types';
+import type { ClaudeConversation } from '@/lib/types';
 import { ensureOffscreen, sendOffscreenMessage } from '@/services/offscreen';
 
 // Extract Claude conversation from current tab.

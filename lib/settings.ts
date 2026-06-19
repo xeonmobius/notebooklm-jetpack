@@ -30,13 +30,3 @@ export async function updateSettings(patch: Partial<Settings>): Promise<Settings
   await chrome.storage.local.set({ [STORAGE_KEY]: next });
   return next;
 }
-
-export function onSettingsChanged(listener: (settings: Settings) => void): () => void {
-  const handler = (changes: Record<string, chrome.storage.StorageChange>, area: string) => {
-    if (area !== 'local' || !changes[STORAGE_KEY]) return;
-    const newValue = (changes[STORAGE_KEY].newValue || {}) as Partial<Settings>;
-    listener({ ...DEFAULTS, ...newValue });
-  };
-  chrome.storage.onChanged.addListener(handler);
-  return () => chrome.storage.onChanged.removeListener(handler);
-}

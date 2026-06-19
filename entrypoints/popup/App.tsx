@@ -4,7 +4,6 @@ import { BookOpen, History, MessageCircle, Headphones, MoreHorizontal, Bookmark,
 import type { ImportProgress } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
-import type { Locale } from '@/lib/i18n';
 import { DocsImport } from '@/components/DocsImport';
 import { PodcastImport } from '@/components/PodcastImport';
 import { ClaudeImport } from '@/components/ClaudeImport';

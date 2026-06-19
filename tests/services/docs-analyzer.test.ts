@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import { detectFramework, extractPages, analyzeDocSite } from '@/services/docs-analyzer';
-import type { DocFramework } from '@/lib/types';
 
 function createDoc(html: string): Document {
   const parser = new DOMParser();

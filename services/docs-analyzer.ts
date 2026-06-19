@@ -453,7 +453,7 @@ function extractMintlifyPages(doc: Document, baseUrl: string): DocPageItem[] {
     const sidebarItems = doc.querySelectorAll('[class*="scroll-m-4"] > a[href^="/"]');
 
     if (sidebarItems.length > 0) {
-      let currentSection = '';
+      const currentSection = '';
       sidebarItems.forEach((link) => {
         const href = link.getAttribute('href');
         if (!href || href === '/') return;
@@ -475,7 +475,7 @@ function extractMintlifyPages(doc: Document, baseUrl: string): DocPageItem[] {
     if (pages.length === 0) {
       // Mintlify uses font-semibold for section headers in the sidebar
       const allSidebarLinks = doc.querySelectorAll<HTMLAnchorElement>('a[href^="/"]');
-      let currentSection = '';
+      const currentSection = '';
 
       allSidebarLinks.forEach((link) => {
         const href = link.getAttribute('href');
@@ -555,11 +555,8 @@ function extractAnthropicPages(doc: Document, baseUrl: string): DocPageItem[] {
   // Anthropic docs uses aside with links to /docs/
   const aside = doc.querySelector('aside');
   if (aside) {
-    // Find section headers (font-semibold divs)
-    const sections = aside.querySelectorAll('div.font-semibold');
-    let currentSection = '';
-
     // Get all links in the aside
+    let currentSection = '';
     const links = aside.querySelectorAll<HTMLAnchorElement>('a[href*="/docs/"]');
     links.forEach((link) => {
       const href = link.getAttribute('href');

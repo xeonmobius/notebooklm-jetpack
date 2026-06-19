@@ -10,9 +10,6 @@ import {
   Copy,
   BookOpen,
   FolderPlus,
-  FolderInput,
-  ChevronDown,
-  ChevronUp,
   X,
   Upload,
 } from 'lucide-react';

@@ -119,7 +119,7 @@ export function YouTubeImport({ initialUrl, onProgress }: Props) {
       autoFetched.current = true;
       handleFetch();
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleImport = () => {
     const toImport = videos.filter((v) => selected.has(v.id));

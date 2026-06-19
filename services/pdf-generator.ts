@@ -114,7 +114,7 @@ async function fetchPageContent(page: DocPageItem): Promise<PageContent | null> 
     console.log('[fetchPage] Offscreen returned, markdown length:', result.markdown.length);
 
     const title = result.title || page.title;
-    let markdown = result.markdown
+    const markdown = result.markdown
       .replace(/\.dcc-[\s\S]*?\n\n/g, '\n\n')
       .replace(/\n{3,}/g, '\n\n')
       .trim();
@@ -363,88 +363,4 @@ export function buildConversationHtml(data: ConversationPdfData): string {
 </html>`;
 }
 
-// ── Silent PDF export via chrome.debugger (CDP Page.printToPDF) ──
 
-// Create blob URL in popup context (has DOM) and send to background for CDP PDF export
-export function saveAsPdf(html: string, title: string): void {
-  const blob = new Blob([html], { type: 'text/html' });
-  const blobUrl = URL.createObjectURL(blob);
-  chrome.runtime.sendMessage({
-    type: 'EXPORT_PDF',
-    blobUrl,
-    title,
-  });
-}
-
-// ── Public API ──
-
-export async function generateDocsPdf(
-  siteInfo: DocSiteInfo,
-  options: PdfGeneratorOptions = {}
-): Promise<void> {
-  let contents: PageContent[];
-
-  // Fast path: if site has llms-full.txt, use it (one request for all content)
-  if (siteInfo.hasLlmsFullTxt) {
-    options.onProgress?.({ phase: 'fetching', current: 0, total: 1, currentPage: 'llms-full.txt' });
-    try {
-      const origin = new URL(siteInfo.baseUrl).origin;
-      const r = await safeFetch(`${origin}/llms-full.txt`, { signal: AbortSignal.timeout(30000) });
-      if (r.ok) {
-        const fullText = await r.text();
-        if (fullText.length > 1000) {
-          // Split into pages by h1 headers
-          const sections = fullText.split(/(?=^# )/m).filter(s => s.trim().length > 50);
-          contents = sections.map((section, i) => {
-            const titleMatch = section.match(/^#\s+(.+)/m);
-            const title = titleMatch?.[1] || `Section ${i + 1}`;
-            const cleaned = cleanComponentMd(section);
-            // Infer section from first h2 or directory-like structure
-            const h2Match = cleaned.match(/^##\s+(.+)/m);
-            return {
-              url: `${origin}/#section-${i}`,
-              title,
-              markdown: cleaned,
-              section: h2Match?.[1]?.slice(0, 30) || undefined,
-              wordCount: cleaned.split(/\s+/).length,
-            };
-          });
-          options.onProgress?.({ phase: 'fetching', current: 1, total: 1 });
-
-          if (contents.length > 0) {
-            options.onProgress?.({ phase: 'rendering', current: 1, total: 1 });
-            const html = buildDocsHtml(siteInfo, contents);
-            saveAsPdf(html, siteInfo.title);
-            options.onProgress?.({ phase: 'done', current: 1, total: 1 });
-            return;
-          }
-        }
-      }
-    } catch { /* fall through to per-page fetching */ }
-  }
-
-  // Standard path: fetch pages individually
-  const maxPages = options.maxPages || 1000;
-  const pagesToFetch = siteInfo.pages.slice(0, maxPages);
-
-  contents = await fetchAllPages(pagesToFetch, options);
-  if (contents.length === 0) throw new Error('No page content could be fetched');
-
-  options.onProgress?.({ phase: 'rendering', current: 1, total: 1 });
-
-  const html = buildDocsHtml(siteInfo, contents);
-  saveAsPdf(html, siteInfo.title);
-
-  options.onProgress?.({ phase: 'done', current: 1, total: 1 });
-}
-
-/** Download HTML directly (alternative to print) */
-export function downloadHtml(html: string, filename: string): void {
-  const blob = new Blob([html], { type: 'text/html' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}

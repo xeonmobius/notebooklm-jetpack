@@ -276,7 +276,7 @@ export default defineBackground(() => {
             sendProgress({ phase: 'downloading', current: i + 1, total: episodes.length, title: ep.title });
             console.log(`[podcast] ${i + 1}/${episodes.length}: ${ep.title}`);
 
-            await new Promise<void>((resolve, reject) => {
+      await new Promise<void>((resolve, reject) => {
               chrome.downloads.download(
                 { url: ep.audioUrl, filename, conflictAction: 'uniquify' },
                 (downloadId) => {
@@ -389,7 +389,7 @@ export default defineBackground(() => {
         const spaPages = pagesToFetch.filter((p: { url: string }) => needsTabBasedExtraction(p.url));
         const fetchPages = pagesToFetch.filter((p: { url: string }) => !needsTabBasedExtraction(p.url));
 
-        let contents: Awaited<ReturnType<typeof fetchAllPages>> = [];
+        const contents: Awaited<ReturnType<typeof fetchAllPages>> = [];
 
         // Tab-based extraction for SPA pages
         if (spaPages.length > 0) {
@@ -719,7 +719,7 @@ async function _tabBasedExtractWithProgress(
   for (const url of urls) {
     sendProgress?.({ phase: 'item-start', url });
     try {
-      let openUrl = url;
+      const openUrl = url;
       const xArticleFocusMatch = url.match(/^https?:\/\/(www\.)?(x\.com|twitter\.com)\/(\w+)\/article\/(\d+)/);
       if (xArticleFocusMatch) { /* already focus mode */ }
 
@@ -856,7 +856,7 @@ async function _tabBasedExtract(
 
       // For X.com article focus-mode URLs, use as-is; for /status/ URLs keep original
       // (we can't know if a /status/ URL is an article until we render it)
-      let openUrl = url;
+      const openUrl = url;
       const xArticleFocusMatch = url.match(/^https?:\/\/(www\.)?(x\.com|twitter\.com)\/(\w+)\/article\/(\d+)/);
       if (xArticleFocusMatch) {
         console.log(`[repair] X.com: already focus mode URL`);
@@ -867,7 +867,7 @@ async function _tabBasedExtract(
       if (!tab.id) throw new Error('Failed to create tab');
 
       // Wait for page to load
-      await new Promise<void>((resolve, reject) => {
+      await new Promise<void>((resolve, _reject) => {
         const timeout = setTimeout(() => {
           chrome.tabs.onUpdated.removeListener(listener);
           resolve(); // resolve even on timeout, we'll try to extract anyway
