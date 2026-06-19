@@ -57,6 +57,12 @@ export default defineConfig({
       '48': 'icons/icon-48.png',
       '128': 'icons/icon-128.png',
     },
+    // Firefox-only: stable add-on identity for AMO (web-ext sign requires it).
+    // Chrome ignores browser_specific_settings. ponytail: generated for new
+    // add-on; swap if an existing AMO listing ever needs to absorb this.
+    ...(browser === 'firefox'
+      ? { browser_specific_settings: { gecko: { id: 'notebooklm-jetpack@xeonmobius' } } }
+      : {}),
   }),
 
   vite: ({ mode }) => ({

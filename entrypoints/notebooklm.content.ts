@@ -1,6 +1,7 @@
 // Content script for NotebookLM page automation
 // Updated: 2026-02-22 — adapted to new NotebookLM UI
 
+import '@/lib/chrome-promise-shim';
 import { getSettings } from '@/lib/settings';
 
 export default defineContentScript({

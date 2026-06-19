@@ -1,3 +1,4 @@
+import '@/lib/chrome-promise-shim';
 import { parseRssFeed } from '@/services/rss-parser';
 import { fetchNotebooksCached as fetchNotebooksApi } from '@/services/notebook-api';
 import { safeFetch } from '@/lib/safe-fetch';

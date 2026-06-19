@@ -1,4 +1,5 @@
 // Content script for extracting Gemini conversations
+import '@/lib/chrome-promise-shim';
 import type { ClaudeConversation, ClaudeMessage, QAPair } from '@/lib/types';
 
 export default defineContentScript({

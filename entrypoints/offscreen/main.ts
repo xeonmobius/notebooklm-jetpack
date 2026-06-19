@@ -5,6 +5,7 @@
  * The actual DOM work lives in services/dom-workers.ts (shared with the
  * Firefox MV2 background, which has DOM natively and skips this document).
  */
+import '@/lib/chrome-promise-shim';
 import {
   htmlToMarkdown,
   htmlFragmentToMarkdown,

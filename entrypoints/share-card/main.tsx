@@ -1,3 +1,4 @@
+import '@/lib/chrome-promise-shim';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { ShareCardApp } from './App';

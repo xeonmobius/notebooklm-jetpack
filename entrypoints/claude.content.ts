@@ -1,5 +1,6 @@
 // Content script for extracting Claude conversations
 // Updated: 2026-02-22 — adapted to current Claude UI
+import '@/lib/chrome-promise-shim';
 import type { ClaudeConversation, ClaudeMessage, QAPair } from '@/lib/types';
 
 export default defineContentScript({

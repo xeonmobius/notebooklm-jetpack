@@ -1,4 +1,5 @@
 // Content script for document site analysis (dynamically injected)
+import '@/lib/chrome-promise-shim';
 import { analyzeDocSite } from '@/services/docs-analyzer';
 import type { DocSiteInfo } from '@/lib/types';
 
