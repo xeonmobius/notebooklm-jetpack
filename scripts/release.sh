@@ -39,10 +39,11 @@ GIT_HASH=$(git rev-parse --short HEAD)
 echo "🔖 Hash: $GIT_HASH"
 
 # ── 4. Build ──
-pnpm build
+pnpm build && pnpm build:firefox
 echo ""
 echo "🚀 Built v$NEW_VERSION+$GIT_HASH"
-echo "   Reload extension from dist/chrome-mv3"
+echo "   Chrome:  reload from dist/chrome-mv3"
+echo "   Firefox: load dist/firefox-mv2 as temporary add-on (about:debugging)"
 
 # ── 5. Push ──
 git push
