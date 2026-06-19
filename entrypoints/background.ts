@@ -1,4 +1,5 @@
 import '@/lib/chrome-promise-shim';
+import { executeScript } from '@/lib/scripting';
 import { parseRssFeed } from '@/services/rss-parser';
 import { fetchNotebooksCached as fetchNotebooksApi } from '@/services/notebook-api';
 import { safeFetch } from '@/lib/safe-fetch';
@@ -59,10 +60,7 @@ async function exportPdfViaPrintDialog(html: string, filename: string): Promise<
   });
 
   try {
-    await chrome.scripting.executeScript({
-      target: { tabId },
-      func: () => { window.print(); },
-    });
+    await executeScript(tabId, { func: () => { window.print(); } });
   } catch (err) {
     console.error('[EXPORT_PDF] print trigger failed:', err);
   }
@@ -803,10 +801,7 @@ async function _tabBasedExtractWithProgress(
       const renderWait = isXcom ? 8000 : needsTabBasedExtraction(url) ? 5000 : 3000;
       await new Promise(r => setTimeout(r, renderWait));
 
-      const extractResult = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: _tabExtractorFunction,
-      });
+      const extractResult = await executeScript(tab.id, { func: _tabExtractorFunction });
 
       await chrome.tabs.remove(tab.id);
 
@@ -953,10 +948,7 @@ async function _tabBasedExtract(
       await new Promise((r) => setTimeout(r, renderWait));
 
       // Extract content from the rendered page (site-specific extractors)
-      const extractResult = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        func: _tabExtractorFunction,
-      });
+      const extractResult = await executeScript(tab.id, { func: _tabExtractorFunction });
 
       // Close the tab
       await chrome.tabs.remove(tab.id);
@@ -1192,10 +1184,7 @@ async function handleMessage(message: MessageType, senderTabId?: number): Promis
     case 'GET_FAILED_SOURCES': {
       // Ensure content script is injected, then forward
       try {
-        await chrome.scripting.executeScript({
-          target: { tabId: message.tabId },
-          files: ['content-scripts/notebooklm.js'],
-        });
+        await executeScript(message.tabId, { files: ['content-scripts/notebooklm.js'] });
       } catch { /* already injected */ }
       await new Promise((r) => setTimeout(r, 300));
 
@@ -1288,10 +1277,7 @@ async function handleMessage(message: MessageType, senderTabId?: number): Promis
       for (const tab of fallbackTabs) {
         if (!tab.id) continue;
         try {
-          await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
-            files: ['content-scripts/notebooklm.js'],
-          }).catch(() => {});
+          await executeScript(tab.id, { files: ['content-scripts/notebooklm.js'] }).catch(() => {});
 
           const resp = await new Promise<{ success: boolean; data?: { current: { id: string; title: string; url: string } | null; list: Array<{ id: string; title: string; url: string }> } }>((resolve) => {
             chrome.tabs.sendMessage(tab.id!, { type: 'GET_NOTEBOOK_INFO' }, (r) => {

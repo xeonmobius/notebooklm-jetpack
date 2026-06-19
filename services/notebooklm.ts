@@ -1,5 +1,6 @@
 import { NOTEBOOKLM_CONFIG, getSelectedNotebook } from '@/lib/config';
 import { delay } from '@/lib/utils';
+import { executeScript } from '@/lib/scripting';
 import type { ImportItem, ImportProgress } from '@/lib/types';
 import { addToHistory } from './history';
 
@@ -97,10 +98,7 @@ async function getNotebookLMTab(targetTabId?: number): Promise<chrome.tabs.Tab> 
 // Inject content script into the tab
 async function ensureContentScript(tabId: number): Promise<void> {
   try {
-    await chrome.scripting.executeScript({
-      target: { tabId },
-      files: ['content-scripts/notebooklm.js'],
-    });
+    await executeScript(tabId, { files: ['content-scripts/notebooklm.js'] });
   } catch {
     // Script might already be injected
   }

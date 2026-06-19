@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { executeScript } from '@/lib/scripting';
 import {
   MessageCircle,
   Loader2,
@@ -80,10 +81,7 @@ export function ClaudeImport({ onProgress }: Props) {
     setError('');
 
     try {
-      await chrome.scripting.executeScript({
-        target: { tabId: currentTabId },
-        files: [platformInfo.script],
-      });
+      await executeScript(currentTabId, { files: [platformInfo.script] });
     } catch { /* already injected */ }
 
     await new Promise((resolve) => setTimeout(resolve, 300));

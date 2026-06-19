@@ -1,5 +1,6 @@
 import type { DocSiteInfo, DocPageItem } from '@/lib/types';
 import { delay } from '@/lib/utils';
+import { executeScript } from '@/lib/scripting';
 import { ensureOffscreen, sendOffscreenMessage } from '@/services/offscreen';
 import { safeFetch } from '@/lib/safe-fetch';
 
@@ -258,10 +259,7 @@ export async function fetchHuaweiCatalog(url: string): Promise<DocPageItem[]> {
 export async function analyzeDocSite(tabId: number): Promise<DocSiteInfo> {
   // Inject the docs content script
   try {
-    await chrome.scripting.executeScript({
-      target: { tabId },
-      files: ['content-scripts/docs.js'],
-    });
+    await executeScript(tabId, { files: ['content-scripts/docs.js'] });
   } catch (error) {
     // Script might already be injected, or tab might not be accessible
     console.warn('Script injection warning:', error);
