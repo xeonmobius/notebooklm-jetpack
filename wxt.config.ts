@@ -31,6 +31,7 @@ export default defineConfig({
       'scripting',
       'contextMenus',
       'downloads',
+      'webRequest',
       // ponytail: chrome.debugger (silent PDF via CDP) and chrome.offscreen
       // (DOM in SW) are Chrome MV3 only. Firefox MV2 background is a persistent
       // page with DOM natively and has no debugger equivalent — omit both there

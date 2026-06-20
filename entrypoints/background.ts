@@ -22,6 +22,29 @@ import type { PodcastInfo, PodcastEpisode } from '@/services/podcast';
 // Firefox branches (print-dialog PDF path) so the SW bundle stays clean.
 const isFirefox = import.meta.env.BROWSER === 'firefox';
 
+// Capture Audio Overview URLs via webRequest — the <audio> element is created
+// via new Audio() in the page's JS (not attached to DOM), so DOM scraping and
+// performance API (which is per-realm in Firefox) can't find it. webRequest
+// intercepts at the network level regardless of content script isolation.
+const capturedAudioUrls = new Map<number, string>();
+
+try {
+  chrome.webRequest.onBeforeRequest.addListener(
+    (details) => {
+      if (
+        details.tabId >= 0 &&
+        /googlevideo\.com\/videoplayback/.test(details.url) &&
+        /mime=audio/.test(details.url)
+      ) {
+        capturedAudioUrls.set(details.tabId, details.url);
+      }
+    },
+    { urls: ['*://*.googlevideo.com/videoplayback*'] },
+  );
+} catch {
+  // webRequest not available in build-time mock; works at runtime.
+}
+
 /**
  * Firefox PDF export: open the rendered HTML in a tab and trigger the print
  * dialog. Firefox MV2 background has DOM (Blob/URL.createObjectURL) but no
@@ -1309,12 +1332,28 @@ async function handleMessage(message: MessageType, senderTabId?: number): Promis
 
     // ── Audio Overview Center ──
     case 'DETECT_AUDIO_OVERVIEW': {
-      try {
-        const resp = await chrome.tabs.sendMessage(message.tabId, { type: 'DETECT_AUDIO_OVERVIEW' });
-        return resp?.success ? resp.data : null;
-      } catch {
-        return null;
+      // Primary: check webRequest-captured audio URLs (most reliable — captures
+      // at the network level regardless of DOM/content-script isolation).
+      let audioUrl = capturedAudioUrls.get(message.tabId) || null;
+
+      // Fallback: ask the content script (DOM scrape + performance API).
+      if (!audioUrl) {
+        try {
+          const resp = await chrome.tabs.sendMessage(message.tabId, { type: 'DETECT_AUDIO_OVERVIEW' });
+          audioUrl = resp?.success ? resp.data?.audioUrl : null;
+        } catch {
+          // Content script not ready or no audio found
+        }
       }
+
+      if (audioUrl) {
+        const tabs = await chrome.tabs.query({ url: 'https://notebooklm.google.com/notebook/*' });
+        const tab = tabs.find((t) => t.id === message.tabId);
+        const title = tab?.title?.replace(/\s*[-–—]\s*NotebookLM\s*$/i, '') || 'notebook';
+        const idMatch = tab?.url?.match(/\/notebook\/([^/?#]+)/);
+        return { notebookId: idMatch?.[1] || String(message.tabId), notebookTitle: title, audioUrl };
+      }
+      return null;
     }
 
     case 'SAVE_AUDIO_OVERVIEW':
