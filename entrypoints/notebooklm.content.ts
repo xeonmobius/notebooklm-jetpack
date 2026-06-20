@@ -78,25 +78,31 @@ export default defineContentScript({
       }
     });
 
-    // Best-effort Audio Overview URL scrape. Selector order is the iteration
-    // surface — if NotebookLM changes its audio rendering, swap/add selectors here.
-    // NOTE: the <audio> element only appear AFTER the user clicks Play on the
-    // Audio Overview. It may also live inside a shadow DOM (Google web components),
-    // so we recurse into shadow roots.
+    // Best-effort Audio Overview URL scrape. Two strategies:
+    // 1. performance.getEntriesByType('resource') — captures googlevideo audio URLs
+    //    even if the <audio> element was created via new Audio() (not in DOM).
+    //    Requires the user to have clicked Play at least once (so the resource is fetched).
+    // 2. DOM search (fallback) — works if <audio> is attached to the DOM.
     function detectAudioOverviewUrl(): string | null {
-      const candidates = [
-        'audio[src]',
-        'audio source[src]',
-        '[data-audio-url]',
-      ];
-      // Search light DOM + shadow roots (NotebookLM uses web components).
+      // Strategy 1: performance resource timing (most reliable — captures all network resources).
+      try {
+        const entries = performance.getEntriesByType('resource');
+        for (let i = entries.length - 1; i >= 0; i--) {
+          const name = entries[i].name;
+          if (/googlevideo\.com\/videoplayback/.test(name) && /mime=audio/.test(name)) {
+            return name;
+          }
+        }
+      } catch { /* performance API unavailable */ }
+
+      // Strategy 2: DOM search (fallback — works if <audio> is attached to DOM).
+      const candidates = ['audio[src]', 'audio source[src]'];
       const search = (root: ParentNode): string | null => {
         for (const sel of candidates) {
           const el = root.querySelector(sel);
-          const url = el?.getAttribute('src') || el?.getAttribute('data-audio-url');
+          const url = el?.getAttribute('src');
           if (url) return url;
         }
-        // Recurse into shadow roots.
         const all = root.querySelectorAll('*');
         for (const node of all) {
           if (node.shadowRoot) {
