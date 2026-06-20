@@ -80,14 +80,33 @@ export default defineContentScript({
 
     // Best-effort Audio Overview URL scrape. Selector order is the iteration
     // surface — if NotebookLM changes its audio rendering, swap/add selectors here.
+    // NOTE: the <audio> element only appear AFTER the user clicks Play on the
+    // Audio Overview. It may also live inside a shadow DOM (Google web components),
+    // so we recurse into shadow roots.
     function detectAudioOverviewUrl(): string | null {
-      const candidates = ['audio[src]', 'audio source[src]', '[data-audio-url]'];
-      for (const sel of candidates) {
-        const el = document.querySelector(sel);
-        const url = el?.getAttribute('src') || el?.getAttribute('data-audio-url');
-        if (url) return url;
-      }
-      return null;
+      const candidates = [
+        'audio[src]',
+        'audio source[src]',
+        '[data-audio-url]',
+      ];
+      // Search light DOM + shadow roots (NotebookLM uses web components).
+      const search = (root: ParentNode): string | null => {
+        for (const sel of candidates) {
+          const el = root.querySelector(sel);
+          const url = el?.getAttribute('src') || el?.getAttribute('data-audio-url');
+          if (url) return url;
+        }
+        // Recurse into shadow roots.
+        const all = root.querySelectorAll('*');
+        for (const node of all) {
+          if (node.shadowRoot) {
+            const found = search(node.shadowRoot);
+            if (found) return found;
+          }
+        }
+        return null;
+      };
+      return search(document);
     }
 
     // Auto-inject banners if issues detected

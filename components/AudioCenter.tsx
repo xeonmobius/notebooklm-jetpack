@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Download, Trash2, Plus, Headphones } from 'lucide-react';
+import { Download, Trash2, Plus, Headphones, RefreshCw } from 'lucide-react';
 import type { AudioOverview } from '@/lib/types';
 import { useI18n } from '@/lib/i18n';
 import { sanitizeFilename } from '@/services/podcast';
@@ -15,6 +15,7 @@ export function AudioCenter({ notebookLMTabId }: { notebookLMTabId: number | nul
   const [list, setList] = useState<AudioOverview[]>([]);
   const [current, setCurrent] = useState<Detected | null>(null);
   const [busy, setBusy] = useState(false);
+  const [detectNonce, setDetectNonce] = useState(0);
 
   const refresh = () => {
     chrome.runtime.sendMessage({ type: 'GET_AUDIO_OVERVIEWS' }, (resp) => {
@@ -33,7 +34,7 @@ export function AudioCenter({ notebookLMTabId }: { notebookLMTabId: number | nul
     } else {
       setCurrent(null);
     }
-  }, [notebookLMTabId]);
+  }, [notebookLMTabId, detectNonce]);
 
   const saveCurrent = () => {
     if (!current) return;
@@ -49,7 +50,7 @@ export function AudioCenter({ notebookLMTabId }: { notebookLMTabId: number | nul
   };
 
   const download = (o: AudioOverview) => {
-    const filename = `${sanitizeFilename(o.notebookTitle) || 'audio-overview'}.mp3`;
+    const filename = `${sanitizeFilename(o.notebookTitle) || 'audio-overview'}.m4a`;
     chrome.runtime.sendMessage({ type: 'DOWNLOAD_AUDIO_OVERVIEW', audioUrl: o.audioUrl, filename });
   };
 
@@ -73,7 +74,16 @@ export function AudioCenter({ notebookLMTabId }: { notebookLMTabId: number | nul
             {t('audio.saveCurrent')}
           </button>
         ) : (
-          <p className="text-[11px] text-gray-400 text-center py-2">{t('audio.noCurrent')}</p>
+          <div className="space-y-1.5">
+            <p className="text-[11px] text-gray-400 text-center py-2">{t('audio.noCurrent')}</p>
+            <button
+              onClick={() => setDetectNonce((n) => n + 1)}
+              className="w-full flex items-center justify-center gap-1.5 py-1.5 text-[11px] font-medium text-gray-500 bg-gray-50 hover:bg-gray-100 rounded-md transition-all btn-press"
+            >
+              <RefreshCw className="w-3 h-3" />
+              {t('retry')}
+            </button>
+          </div>
         )
       )}
 
