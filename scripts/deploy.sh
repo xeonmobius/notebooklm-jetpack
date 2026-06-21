@@ -49,6 +49,9 @@ if [ -n "${WEB_EXT_API_KEY:-}" ] && [ -n "${WEB_EXT_API_SECRET:-}" ]; then
   # ponytail: AMO requires sources when the shipped code is bundled/minified.
   # WXT emits dist/*-sources.zip; pass it if present.
   [ -n "$FF_SOURCES_ZIP" ] && SIGN_ARGS+=(--upload-source-code "$FF_SOURCES_ZIP")
+  # AMO listed submissions require license + categories metadata
+  METADATA_FILE="$(dirname "$0")/../.amo-metadata.json"
+  [ -f "$METADATA_FILE" ] && SIGN_ARGS+=(--amo-metadata "$METADATA_FILE")
   pnpm exec web-ext sign "${SIGN_ARGS[@]}" \
     || echo "⚠️  AMO sign failed — check API key/secret"
 else

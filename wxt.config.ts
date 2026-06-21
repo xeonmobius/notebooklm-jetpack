@@ -24,6 +24,7 @@ export default defineConfig({
     default_locale: 'en',
     version,
     version_name: `${version}+${gitHash}`,
+    license: 'MIT',
     permissions: [
       'storage',
       'activeTab',
