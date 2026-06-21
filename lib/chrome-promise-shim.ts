@@ -20,13 +20,15 @@
 import browser from 'webextension-polyfill';
 
 if (import.meta.env.BROWSER === 'firefox') {
-  const c = globalThis.chrome as { storage: unknown; tabs: unknown };
+  const c = globalThis.chrome as { storage: unknown; tabs: unknown; webRequest: unknown };
   // ponytail: only swap namespaces called in Promise form. Add more here if a
   // Promise-form call surfaces on another namespace (audit: runtime/downloads
   // use callback form and stay native; scripting doesn't exist on MV2 —
   // tracked separately as a tabs.executeScript fallback).
   c.storage = browser.storage;
   c.tabs = browser.tabs;
+  // webRequest: Firefox's chrome.webRequest may be incomplete; use the polyfill's.
+  c.webRequest = (browser as unknown as { webRequest: typeof chrome.webRequest }).webRequest;
 }
 
 export {};
