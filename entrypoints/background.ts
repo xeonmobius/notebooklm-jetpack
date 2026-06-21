@@ -31,18 +31,18 @@ const capturedAudioUrls = new Map<number, string>();
 try {
   chrome.webRequest.onBeforeRequest.addListener(
     (details) => {
-      if (
-        details.tabId >= 0 &&
-        /googlevideo\.com\/videoplayback/.test(details.url) &&
-        /mime=audio/.test(details.url)
-      ) {
+      const isAudio = /googlevideo\.com\/videoplayback/.test(details.url) && /mime=audio/.test(details.url);
+      console.log('[webRequest]', details.tabId, isAudio ? 'AUDIO MATCH' : 'skip', details.url.slice(0, 80));
+      if (details.tabId >= 0 && isAudio) {
         capturedAudioUrls.set(details.tabId, details.url);
+        console.log('[webRequest] Captured audio URL for tab', details.tabId);
       }
     },
-    { urls: ['*://*.googlevideo.com/videoplayback*'] },
+    { urls: ['<all_urls>'] },
   );
-} catch {
-  // webRequest not available in build-time mock; works at runtime.
+  console.log('[webRequest] Listener registered');
+} catch (e) {
+  console.error('[webRequest] Failed to register listener:', e);
 }
 
 /**
