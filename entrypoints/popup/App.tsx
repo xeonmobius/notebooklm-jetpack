@@ -54,9 +54,9 @@ export default function App() {
       {/* Header — frosted glass */}
       <div className="glass px-3.5 py-2.5 border-b border-border flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-2.5">
-          <img src="/icons/icon-128.png" alt="NotebookLM Jetpack" className="w-7 h-7" />
+          <img src="/icons/icon-128.png" alt="NotebookLM KAI" className="w-7 h-7" />
           <div className="flex items-baseline gap-1.5">
-            <span className="font-semibold text-[13px] text-gray-900 tracking-tight">NotebookLM Jetpack</span>
+            <span className="font-semibold text-[13px] text-gray-900 tracking-tight">NotebookLM KAI</span>
             <span className="font-mono text-[9px] text-gray-400/80 tabular-nums" title={`Build: ${__BUILD_TIME__}`}>v{__VERSION__}</span>
           </div>
         </div>

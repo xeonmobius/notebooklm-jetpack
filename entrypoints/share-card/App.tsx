@@ -236,7 +236,7 @@ export function ShareCardApp() {
           {/* Footer */}
           <div className="card-footer">
             <div className="footer-left">
-              <span className="footer-brand">NotebookLM Jetpack</span>
+              <span className="footer-brand">NotebookLM KAI</span>
               <span className="footer-made-with">{i18n.madeWith()}</span>
             </div>
             <div className="footer-qr">

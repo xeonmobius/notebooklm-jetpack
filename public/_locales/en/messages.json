@@ -1,6 +1,6 @@
 {
   "extensionName": {
-    "message": "NotebookLM Jetpack",
+    "message": "NotebookLM KAI",
     "description": "The name of the extension."
   },
   "extensionDescription": {
@@ -8,7 +8,7 @@
     "description": "The description of the extension shown in Chrome Web Store and chrome://extensions."
   },
   "actionTitle": {
-    "message": "NotebookLM Jetpack",
+    "message": "NotebookLM KAI",
     "description": "Tooltip shown when hovering over the extension icon in the toolbar."
   }
 }

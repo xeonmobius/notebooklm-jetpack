@@ -63,7 +63,7 @@ export default defineConfig({
     // Chrome ignores browser_specific_settings. ponytail: generated for new
     // add-on; swap if an existing AMO listing ever needs to absorb this.
     ...(browser === 'firefox'
-      ? { browser_specific_settings: { gecko: { id: 'notebooklm-jetpack@xeonmobius' } } }
+      ? { browser_specific_settings: { gecko: { id: 'notebooklm-kai@xeonmobius' } } }
       : {}),
   }),
 

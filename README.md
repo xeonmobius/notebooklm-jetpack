@@ -6,7 +6,7 @@
   <img src="assets/icons/concepts/concept8-final.svg" width="128" height="128" alt="NotebookLM Jetpack Logo">
 </p>
 
-<h1 align="center">NotebookLM Jetpack 🚀</h1>
+<h1 align="center">NotebookLM KAI 🚀</h1>
 
 <p align="center">
   <strong>Supercharge NotebookLM — Import web pages, Substack, podcasts, doc sites & AI chats in one click.</strong><br>

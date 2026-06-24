@@ -266,7 +266,7 @@ const MENU_ID_PAGE = 'import-page';
 const MENU_ID_LINK = 'import-link';
 
 export default defineBackground(() => {
-  console.log('NotebookLM Jetpack background service started');
+  console.log('NotebookLM KAI background service started');
 
   // Create context menus on install
   chrome.runtime.onInstalled.addListener((details) => {
